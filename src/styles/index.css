@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-size: 16px;
+  }
+  body {
+    @apply bg-neutral-50 text-neutral-900 antialiased;
+  }
+}
+
+@layer components {
+  .skip-link {
+    @apply absolute left-2 top-2 -translate-y-16 rounded bg-white px-3 py-2 text-sm font-semibold text-navy-800 shadow focus:translate-y-0;
+  }
+
+  .portal-width {
+    width: min(100%, 80rem);
+    margin-inline: auto;
+  }
+
+  .portal-utility {
+    background-color: #f3f4f6;
+    color: #1f2937;
+  }
+
+  .tricolour-strip {
+    display: flex;
+    height: 6px;
+  }
+
+  .tricolour-strip .saffron,
+  .tricolour-strip .white,
+  .tricolour-strip .green {
+    flex: 1;
+  }
+
+  .tricolour-strip .saffron {
+    background-color: #ff9933;
+  }
+
+  .tricolour-strip .white {
+    background-color: #fff;
+    border-block: 1px solid #e5e7eb;
+  }
+
+  .tricolour-strip .green {
+    background-color: #138808;
+  }
+  .focus-ring {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-500 focus-visible:ring-offset-2;
+  }
+}

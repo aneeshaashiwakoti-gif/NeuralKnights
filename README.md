@@ -1,5 +1,7 @@
 # AICTE SmartFlow (SIH26262)
 
+NeuralKnights · SIH
+
 > **Demonstration prototype.** This is not an officially deployed AICTE service. All institutions, users, applications,
 > records and thresholds are fictional sample data. Nothing here represents a regulatory decision.
 

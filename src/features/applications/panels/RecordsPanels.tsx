@@ -41,7 +41,7 @@ export function DocumentsPanel({ detail }: { detail: ApplicationDetail }) {
                   <td className="py-2 pr-4">
                     <StatusChip label={CHECKLIST_STATUS_LABEL[item.status]} tone={CHECKLIST_STATUS_TONE[item.status]} />
                   </td>
-                  <td className="py-2 pr-4">{item.fileName ?? '—'}</td>
+                  <td className="py-2 pr-4 font-mono">{item.fileName ?? '—'}</td>
                   <td className="py-2">{formatDate(item.uploadedOn)}</td>
                 </tr>
               ))}
@@ -84,7 +84,7 @@ export function ObservationsPanel({ detail }: { detail: ApplicationDetail }) {
                   </p>
                 )}
                 {q.reviewNote && (
-                  <p className="mt-2 border-l-2 border-saffron-500 pl-3">
+                  <p className="mt-2 border-l-2 border-navy-400 pl-3">
                     <span className="font-medium">Reviewer note by {nameOf(detail, q.reviewedById)}</span>
                     {q.reviewedOn ? ` (${formatDate(q.reviewedOn)})` : ''}:
                     <br />
@@ -143,7 +143,7 @@ export function HistoryPanel({ detail }: { detail: ApplicationDetail }) {
             <tbody className="divide-y divide-neutral-200">
               {detail.auditEvents.map((e) => (
                 <tr key={e.id} className="align-top">
-                  <td className="py-2 pr-3 whitespace-nowrap">{formatDateTime(e.timestamp)}</td>
+                  <td className="py-2 pr-3 whitespace-nowrap font-mono text-table">{formatDateTime(e.timestamp)}</td>
                   <td className="py-2 pr-3">{e.action}</td>
                   <td className="py-2 pr-3">
                     {e.actorName}

@@ -80,7 +80,7 @@ export function ApplicationDetailPage() {
     <>
       {crumbs}
       <PageHeader
-        title={`${app.id}: ${app.programme}`}
+        title={<><span className="font-mono">{app.id}</span>: {app.programme}</>}
         description={`${d.institution.name} · ${d.workflowTemplate.label}`}
         actions={
           <StatusChip label={APPLICATION_STATUS_LABEL[app.status]} tone={APPLICATION_STATUS_TONE[app.status]} />
@@ -105,7 +105,7 @@ export function ApplicationDetailPage() {
               onClick={() => setTab(t.key)}
               onKeyDown={(e) => onTabKeyDown(e, i)}
               className={`focus-ring -mb-px border-b-2 px-3 py-2 text-sm ${
-                selected ? 'border-saffron-500 font-semibold text-navy-800' : 'border-transparent text-neutral-700 hover:text-navy-800'
+                selected ? 'border-navy-500 font-semibold text-navy-800' : 'border-transparent text-neutral-700 hover:text-navy-800'
               }`}
             >
               {t.label}

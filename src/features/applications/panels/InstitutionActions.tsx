@@ -72,9 +72,9 @@ function UploadForm({ detail, items }: { detail: ApplicationDetail; items: { id:
   return (
     <form onSubmit={handleSubmit(onValid)} noValidate className="space-y-4">
       <p className="text-xs text-neutral-700">
-        Application {detail.application.id}. Enter the document file name for the application record.
+        Application <span className="font-mono">{detail.application.id}</span>. Enter the document file name for the application record.
       </p>
-      <FormField id="checklistItemId" label="Checklist item" error={formState.errors.checklistItemId?.message}>
+      <FormField id="checklistItemId" label="Checklist item" error={formState.errors.checklistItemId?.message} required>
         <select id="checklistItemId" className={inputClass} {...register('checklistItemId')}>
           {items.map((i) => (
             <option key={i.id} value={i.id}>
@@ -86,6 +86,7 @@ function UploadForm({ detail, items }: { detail: ApplicationDetail; items: { id:
       <FormField
         id="fileName"
         label="File name"
+        required
         error={formState.errors.fileName?.message}
         hint="Example: registered-lease-deed.pdf"
       >
@@ -146,6 +147,7 @@ function RespondForm({ query }: { query: ScrutinyQuery }) {
         <FormField
           id={fieldId}
           label="Your response"
+          required
           error={formState.errors.response?.message}
           hint="Answer the reviewer's query specifically. Attach evidence references by file name where relevant."
         >

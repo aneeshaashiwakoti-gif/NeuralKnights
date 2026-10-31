@@ -137,7 +137,7 @@ npm run build
 - `npm install`: passed; npm reported 9 audit advisories (5 moderate, 2 high, 2 critical).
 - `npm run typecheck`: passed.
 - `npm test`: passed — 6 test files, 31 tests, including the REST `NOT_IMPLEMENTED` smoke test.
-- `npm run build`: passed — 432.19 kB JavaScript (125.28 kB gzip); no chunk-size warning.
+- `npm run build`: passed — 440.64 kB JavaScript (127.45 kB gzip); no chunk-size warning.
 - `npm run dev -- --host 127.0.0.1`: started and returned HTTP 200. Browser checks covered valid and unknown-account
   sign-in, overview rendering, mobile navigation at 390 px with no horizontal overflow, application submission,
   document recording, reviewer access, and persistence after reload.
@@ -151,8 +151,24 @@ npm run build
   APP-2026-0006.
 - Scenario 1's submission, review, clarification, response and stage advancement also pass in automated service tests.
 - The application tablist keyboard behavior is covered by a component test. A full keyboard, tablet, screen-reader and
-  page-by-page accessibility audit remains unverified. The status-chip contrast values documented above have not
-  changed.
+  page-by-page accessibility audit remains unverified.
+
+### Visual and accessibility verification
+
+- Typography: Noto Sans and JetBrains Mono, both SIL Open Font License (OFL), loaded with `display=swap`.
+- Visual tokens: masthead navy `#0B2545`, primary navy `#13315C`, link navy `#1F4E79`, saffron `#FF9933`;
+  page/section/body/table/caption sizes are 24/16/14/13/12 px. Status colours are success `#1E7B34`, warning
+  `#9A5B00`, danger `#B42318`, and information `#1F4E79`.
+- Contrast checks: status-label text against its 8% tint measures success 4.78:1, warning 4.87:1, danger 5.76:1,
+  and information 7.62:1. All exceed the 4.5:1 body-text threshold.
+- Axe WCAG 2.2 AA scans: sign-in 0 violations (27 rules passed), overview 0 (26 passed), and application detail 0
+  (28 passed). The detail scan had one incomplete color-contrast item requiring manual review; no violation was
+  reported.
+- Browser viewport checks at 1280, 768 and 375 px found no horizontal document overflow across all 14 application
+  routes under the system administrator account; institution-specific views (including new application and
+  undertaking detail) were also checked under an institution account.
+- Text-size and high-contrast preferences persist through local storage. A complete screen-reader, keyboard,
+  tablet-by-tablet and every-route accessibility audit remains unverified.
 
 ### Manual test checklist (Scenario 1)
 

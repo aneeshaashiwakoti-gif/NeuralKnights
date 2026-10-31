@@ -16,7 +16,7 @@ import {
   inputClass,
 } from '../../components/ui';
 import { DEMO_REGIONS, DEMO_POLICY } from '../../domain/policy';
-import { APPLICATION_STATUS_LABEL } from '../../domain/labels';
+import { APPLICATION_STATUS_LABEL, formatDate, formatDateTime } from '../../domain/labels';
 import type { ApplicationStatus, DemoAlert, DemoPolicy, WorkflowKind } from '../../domain/types';
 import { WORKFLOW_KINDS, WORKFLOW_TEMPLATES } from '../../domain/workflowTemplates';
 import { describeError } from '../../services/errors';
@@ -153,12 +153,12 @@ export function WorkflowPage() {
               <thead className="bg-neutral-100"><tr>{['Application', 'Institution', 'Region', 'Stage', 'Status', 'Officer', 'Age (days)'].map((h) => <th key={h} scope="col" className="p-2">{h}</th>)}</tr></thead>
               <tbody>{rows.map((row) => (
                 <tr key={row.id} className="border-t border-neutral-200">
-                  <td className="p-2"><Link className="text-navy-700 underline" to={`/applications/${row.id}`}>{row.id}</Link></td>
+                  <td className="p-2"><Link className="font-mono text-navy-700 underline" to={`/applications/${row.id}`}>{row.id}</Link></td>
                   <td className="p-2">{row.institutionName}</td><td className="p-2">{row.region}</td>
                   <td className="p-2">{row.stages.find((stage) => stage.key === row.currentStageKey)?.label ?? row.currentStageKey}</td>
                   <td className="p-2">{APPLICATION_STATUS_LABEL[row.status]}</td>
                   <td className="p-2">{peopleQuery.data?.find((person) => person.id === row.responsibleOfficerId)?.displayName ?? 'Unassigned'}</td>
-                  <td className="p-2">{row.ageDays}</td>
+                  <td className="p-2 tabular-nums">{row.ageDays}</td>
                 </tr>
               ))}</tbody>
             </table>
@@ -221,21 +221,21 @@ export function EvcPage() {
       {has('evc.schedule') && (
         <Panel title="Schedule visit">
           <form onSubmit={submit} className="grid gap-3 md:grid-cols-2">
-            <FormField id="evc-application" label="Application">
+            <FormField id="evc-application" label="Application" required>
               <select id="evc-application" className={inputClass} value={applicationId} onChange={(e) => setApplicationId(e.target.value)}>
                 <option value="">Select an awaiting EVC application</option>
                 {(data?.queue ?? []).map((item) => <option key={item.id} value={item.id}>{item.id} — {item.programme}</option>)}
               </select>
             </FormField>
-            <FormField id="evc-date" label="Visit date" hint={`Select a date on or after ${data?.asOfDate ?? 'the current processing date'}.`}>
+            <FormField id="evc-date" label="Visit date" hint={`Select a date on or after ${data ? formatDate(data.asOfDate) : 'the current processing date'}.`} required>
               <input id="evc-date" type="date" className={inputClass} value={visitDate} onChange={(e) => setVisitDate(e.target.value)} />
             </FormField>
-            <FormField id="evc-members" label="Committee members" hint="Use Ctrl/Command to select more than one member.">
+            <FormField id="evc-members" label="Committee members" hint="Use Ctrl/Command to select more than one member." required>
               <select id="evc-members" className={inputClass} multiple value={members} onChange={(e) => setMembers(Array.from(e.target.selectedOptions, (option) => option.value))}>
                 {(data?.people ?? []).map((person) => <option key={person.id} value={person.id}>{person.displayName} — {person.designation}</option>)}
               </select>
             </FormField>
-            <FormField id="evc-venue" label="Venue">
+            <FormField id="evc-venue" label="Venue" required>
               <input id="evc-venue" className={inputClass} value={venue} onChange={(e) => setVenue(e.target.value)} maxLength={160} />
             </FormField>
             <div className="md:col-span-2"><Button type="submit" loading={action.busy} disabled={!has('evc.schedule')}>Schedule visit</Button></div>
@@ -253,7 +253,7 @@ export function EvcPage() {
                     <tbody>{result.queue.map((item) => {
                       const overdue = dayDistance(item.lastActionOn, result.asOfDate) > result.policy.evcVisitDeadlineDays;
                       return <tr key={item.id} className="border-t">
-                        <td className="p-2"><Link to={`/applications/${item.id}`} className="underline text-navy-700">{item.id}</Link></td>
+                        <td className="p-2"><Link to={`/applications/${item.id}`} className="font-mono text-navy-700 underline">{item.id}</Link></td>
                         <td className="p-2">{item.institutionName}</td><td className="p-2">{item.region}</td><td className="p-2">{item.ageDays} days</td>
                         <td className="p-2"><StatusChip label={overdue ? 'Overdue — configured policy' : 'Within configured period'} tone={overdue ? 'warning' : 'success'} /></td>
                       </tr>;
@@ -268,7 +268,7 @@ export function EvcPage() {
                 const app = result.queue.find((item) => item.id === visit.applicationId);
                 const overdue = visit.status === 'scheduled' && visitDateOverdue(visit.visitDate, result.policy.evcVisitDeadlineDays, result.asOfDate);
                 return <li key={visit.id} className="rounded border border-neutral-200 p-3">
-                  <p className="font-medium">{visit.applicationId} · {visit.visitDate} · {visit.venue}</p>
+                  <p className="font-medium"><span className="font-mono">{visit.applicationId}</span> · {formatDate(visit.visitDate)} · {visit.venue}</p>
                   <p className="text-sm">Committee: {visit.committeeMemberIds.map((id) => result.people.find((person) => person.id === id)?.displayName ?? id).join(', ')}</p>
                   <p className="mt-1 flex flex-wrap items-center gap-2"><StatusChip label={visit.status === 'completed' ? 'Completed' : 'Scheduled'} tone={visit.status === 'completed' ? 'success' : 'info'} />{overdue && <StatusChip label="Overdue — configured policy" tone="warning" />}</p>
                   {visit.status === 'scheduled' && has('evc.complete') && <Button className="mt-2" variant="secondary" disabled={visit.visitDate > result.asOfDate} loading={action.busy} onClick={() => user && void action.run(() => services.evc.completeVisit(user, visit.id), 'Visit completed and the next workflow stage activated.')}>Mark visit completed</Button>}
@@ -277,7 +277,7 @@ export function EvcPage() {
               })}</ul> : <EmptyState title="No EVC visits have been scheduled." />}
             </Panel>
             <Panel title="EVC and escalation history">
-              {result.audit.length ? <ul className="space-y-2">{result.audit.map((event) => <li key={event.id} className="border-b border-neutral-200 pb-2 text-sm"><strong>{event.action}</strong> · {event.applicationId ?? event.relatedRecord ?? '—'} · {event.actorName} · {event.timestamp}</li>)}</ul> : <p className="text-sm text-neutral-700">No EVC or escalation events recorded in this scope.</p>}
+              {result.audit.length ? <ul className="space-y-2">{result.audit.map((event) => <li key={event.id} className="border-b border-neutral-200 pb-2 text-sm"><strong>{event.action}</strong> · <span className="font-mono">{event.applicationId ?? event.relatedRecord ?? '—'}</span> · {event.actorName} · {formatDateTime(event.timestamp)}</li>)}</ul> : <p className="text-sm text-neutral-700">No EVC or escalation events recorded in this scope.</p>}
             </Panel>
           </>
         )}
@@ -303,7 +303,7 @@ function EvidenceActions({ undertakingId, evidenceId }: { undertakingId: string;
   const [note, setNote] = useState('');
   if (!has('compliance.verify')) return null;
   return <div className="mt-2 flex flex-wrap items-end gap-2">
-    <FormField id={`evidence-note-${evidenceId}`} label="Reviewer note"><input id={`evidence-note-${evidenceId}`} className={inputClass} value={note} onChange={(e) => setNote(e.target.value)} /></FormField>
+    <FormField id={`evidence-note-${evidenceId}`} label="Reviewer note" required><input id={`evidence-note-${evidenceId}`} className={inputClass} value={note} onChange={(e) => setNote(e.target.value)} /></FormField>
     <Button variant="secondary" loading={action.busy} onClick={() => user && void action.run(() => services.compliance.reviewEvidence(user, evidenceId, 'verify', note), `Evidence for ${undertakingId} verified.`)}>Verify</Button>
     <Button variant="secondary" loading={action.busy} onClick={() => user && void action.run(() => services.compliance.reviewEvidence(user, evidenceId, 'clarify', note), 'Clarification requested.')}>Request clarification</Button>
     <Feedback error={action.error} success={action.success} />
@@ -337,11 +337,11 @@ function ComplianceRegisterPage() {
         {(items) => items.length ? <div className="space-y-3">{items.map((item) => {
           const latest = item.evidence[item.evidence.length - 1];
           return <Panel key={item.id} title={`${item.institutionName} — ${item.condition}`}>
-            <p className="text-sm">Due date: {item.dueDate} · <Link className="underline text-navy-700" to={`/compliance/${item.id}`}>Open undertaking details</Link></p>
-            <p className="mt-1 text-sm">Latest evidence: {latest ? `${latest.fileName} — ${latest.status.replace(/_/g, ' ')}` : 'None submitted'}</p>
+            <p className="text-sm">Due date: {formatDate(item.dueDate)} · <Link className="underline text-navy-700" to={`/compliance/${item.id}`}>Open undertaking details</Link></p>
+            <p className="mt-1 text-sm">Latest evidence: {latest ? <><span className="font-mono">{latest.fileName}</span> — {latest.status.replace(/_/g, ' ')}</> : 'None submitted'}</p>
             {has('compliance.submit_evidence') && (
               <form className="mt-3 flex flex-wrap items-end gap-2" onSubmit={(event) => submit(event, item.id)}>
-                <FormField id={`evidence-file-${item.id}`} label="Evidence file name" hint="PDF file names only; no file content is stored.">
+                <FormField id={`evidence-file-${item.id}`} label="Evidence file name" hint="PDF file names only; no file content is stored." required>
                   <input id={`evidence-file-${item.id}`} className={inputClass} value={evidence[item.id] ?? ''} onChange={(e) => setEvidence((state) => ({ ...state, [item.id]: e.target.value }))} />
                 </FormField>
                 <Button type="submit" loading={action.busy}>Record evidence</Button>
@@ -362,10 +362,10 @@ function ComplianceDetailPage({ undertakingId }: { undertakingId: string }) {
     <ModuleFrame title={`Undertaking ${undertakingId}`} description="Evidence history and current verification state.">
       <QueryState query={query}>
         {(item) => <Panel title={item.condition}>
-          <p>Institution: {item.institutionName} · Due date: {item.dueDate}</p>
+          <p>Institution: {item.institutionName} · Due date: {formatDate(item.dueDate)}</p>
           {item.evidence.length ? <div className="mt-3 overflow-x-auto"><table className="min-w-[600px] w-full text-left text-sm">
             <thead className="bg-neutral-100"><tr>{['File name', 'Submitted', 'Status', 'Reviewer note'].map((heading) => <th scope="col" key={heading} className="p-2">{heading}</th>)}</tr></thead>
-            <tbody>{item.evidence.map((record) => <tr key={record.id} className="border-t"><td className="p-2">{record.fileName}</td><td className="p-2">{record.submittedOn}</td><td className="p-2">{record.status.replace(/_/g, ' ')}</td><td className="p-2">{record.reviewerNote ?? '—'}</td></tr>)}</tbody>
+            <tbody>{item.evidence.map((record) => <tr key={record.id} className="border-t"><td className="p-2 font-mono">{record.fileName}</td><td className="p-2">{formatDate(record.submittedOn)}</td><td className="p-2">{record.status.replace(/_/g, ' ')}</td><td className="p-2">{record.reviewerNote ?? '—'}</td></tr>)}</tbody>
           </table></div> : <EmptyState title="No evidence has been submitted." />}
         </Panel>}
       </QueryState>
@@ -414,18 +414,18 @@ export function DocumentsPage() {
           return <Panel key={document.id} title={`${document.institutionName} — ${document.type}`}>
             <div className="flex flex-wrap items-center gap-2 text-sm">
               <StatusChip label={VALIDITY_INFO[document.validity].label} tone={VALIDITY_INFO[document.validity].tone} />
-              <span>Submitted {document.submittedOn}</span><span>Issued {document.issueDate}</span><span>Expires {document.expiryDate}</span>
+              <span>Submitted {formatDate(document.submittedOn)}</span><span>Issued {formatDate(document.issueDate)}</span><span>Expires {formatDate(document.expiryDate)}</span>
             </div>
             {has('renewal.submit') && <form className="mt-3 flex flex-wrap items-end gap-2" onSubmit={(event) => submitRenewal(event, document.id)}>
-              <FormField id={`renewal-${document.id}`} label="Renewal file name" hint="Enter the file name of the renewal document.">
+              <FormField id={`renewal-${document.id}`} label="Renewal file name" hint="Enter the file name of the renewal document." required>
                 <input id={`renewal-${document.id}`} className={inputClass} value={names[document.id] ?? ''} onChange={(e) => setNames((state) => ({ ...state, [document.id]: e.target.value }))} />
               </FormField>
               <Button type="submit" loading={action.busy}>Submit renewal</Button>
             </form>}
-            {latest && <p className="mt-2 text-sm">Latest renewal: {latest.fileName} · {latest.status.replace(/_/g, ' ')}{latest.reviewerNote ? ` · ${latest.reviewerNote}` : ''}</p>}
+            {latest && <p className="mt-2 text-sm">Latest renewal: <span className="font-mono">{latest.fileName}</span> · {latest.status.replace(/_/g, ' ')}{latest.reviewerNote ? ` · ${latest.reviewerNote}` : ''}</p>}
             {has('document.verify') && document.renewals.filter((renewal) => renewal.status === 'awaiting_verification').map((renewal) => (
               <div key={renewal.id} className="mt-2 flex flex-wrap items-end gap-2">
-                <FormField id={`renewal-note-${renewal.id}`} label="Reviewer note">
+                <FormField id={`renewal-note-${renewal.id}`} label="Reviewer note" required>
                   <input id={`renewal-note-${renewal.id}`} className={inputClass} value={notes[renewal.id] ?? ''} onChange={(e) => setNotes((state) => ({ ...state, [renewal.id]: e.target.value }))} />
                 </FormField>
                 <Button variant="secondary" loading={action.busy} onClick={() => user && void action.run(() => services.documents.reviewRenewal(user, renewal.id, 'verify', notes[renewal.id] ?? ''), 'Renewal verified.')}>Verify renewal</Button>
@@ -433,7 +433,7 @@ export function DocumentsPage() {
               </div>
             ))}
             <details className="mt-3"><summary className="cursor-pointer font-medium">Reminder and escalation history</summary>
-              {document.reminders.length ? <ul className="mt-2 list-disc pl-5 text-sm">{document.reminders.map((item) => <li key={item.id}>{item.date} · {item.kind} · {item.message}</li>)}</ul> : <p className="mt-2 text-sm">No reminder or escalation history is recorded.</p>}
+              {document.reminders.length ? <ul className="mt-2 list-disc pl-5 text-sm">{document.reminders.map((item) => <li key={item.id}>{formatDate(item.date)} · {item.kind} · {item.message}</li>)}</ul> : <p className="mt-2 text-sm">No reminder or escalation history is recorded.</p>}
             </details>
           </Panel>;
         })}</div> : <EmptyState title="No documents match this validity filter." />}
@@ -488,12 +488,12 @@ function AlertCard({
   return <Panel title={alert.title}>
     <div className="flex flex-wrap gap-2 text-sm"><StatusChip label={`${alert.severity} severity`} tone={tone} /><StatusChip label={alert.status} tone={alert.status === 'resolved' ? 'success' : alert.status === 'escalated' ? 'danger' : 'info'} /><span>{ALERT_CATEGORY[alert.category]}</span><span>Responsible party: {alert.responsibleParty}</span><span>Deadline: {alert.deadline}</span></div>
     {canManage && alert.status !== 'resolved' && <div className="mt-3 flex flex-wrap items-end gap-2">
-      <FormField id={`alert-note-${alert.id}`} label="Action note" hint="At least 3 characters are required."><input id={`alert-note-${alert.id}`} className={inputClass} value={note} onChange={(e) => setNote(e.target.value)} /></FormField>
+      <FormField id={`alert-note-${alert.id}`} label="Action note" hint="At least 3 characters are required." required><input id={`alert-note-${alert.id}`} className={inputClass} value={note} onChange={(e) => setNote(e.target.value)} /></FormField>
       {alert.status === 'open' && <Button variant="secondary" loading={busy} onClick={() => onAction('acknowledged')}>Acknowledge</Button>}
       <Button variant="secondary" loading={busy} onClick={() => onAction('resolved')}>Resolve</Button>
       {alert.status !== 'escalated' && <Button variant="secondary" loading={busy} onClick={() => onAction('escalated')}>Escalate</Button>}
     </div>}
-    <details className="mt-3"><summary className="cursor-pointer font-medium">Event history ({alert.events.length})</summary><ol className="mt-2 list-decimal pl-5 text-sm">{alert.events.map((event) => <li key={event.id}>{event.date} · {event.action} · {event.actorName}{event.note ? ` · ${event.note}` : ''}</li>)}</ol></details>
+    <details className="mt-3"><summary className="cursor-pointer font-medium">Event history ({alert.events.length})</summary><ol className="mt-2 list-decimal pl-5 text-sm">{alert.events.map((event) => <li key={event.id}>{formatDateTime(event.date)} · {event.action} · {event.actorName}{event.note ? ` · ${event.note}` : ''}</li>)}</ol></details>
   </Panel>;
 }
 
@@ -538,7 +538,7 @@ export function ReportsPage() {
     <ModuleFrame title="Reports" description="Filter the current report and export records as a CSV file.">
       {!has('reports.export') && <PermissionDenied message="Your role cannot access these reports." />}
       <div className="flex flex-wrap items-end gap-3">
-        <FormField id="report-type" label="Report">
+        <FormField id="report-type" label="Report" required>
           <select id="report-type" className={statusClass} value={kind} onChange={(e) => setKind(e.target.value as ReportKind)}>{REPORT_OPTIONS.map((item) => <option key={item.kind} value={item.kind}>{item.label}</option>)}</select>
         </FormField>
         <FormField id="report-search" label="Filter current data">
@@ -583,7 +583,7 @@ export function AuditPage() {
         {(events) => events.length ? <div className="overflow-x-auto rounded border border-neutral-300 bg-white"><table className="min-w-[760px] w-full text-left text-sm">
           <caption className="p-3 text-left font-semibold">Global audit events, newest first</caption>
           <thead className="bg-neutral-100"><tr>{['Date', 'Application', 'Action', 'Actor', 'Role', 'Previous status', 'New status', 'Reason'].map((h) => <th key={h} scope="col" className="p-2">{h}</th>)}</tr></thead>
-          <tbody>{events.map((event) => <tr key={event.id} className="border-t"><td className="p-2">{event.timestamp}</td><td className="p-2">{event.applicationId ?? '—'}</td><td className="p-2">{event.action}</td><td className="p-2">{event.actorName}</td><td className="p-2">{event.actorRole}</td><td className="p-2">{event.previousStatus ?? '—'}</td><td className="p-2">{event.newStatus ?? '—'}</td><td className="p-2">{event.reason ?? '—'}</td></tr>)}</tbody>
+          <tbody>{events.map((event) => <tr key={event.id} className="border-t"><td className="p-2 tabular-nums">{formatDateTime(event.timestamp)}</td><td className="p-2 font-mono">{event.applicationId ?? '—'}</td><td className="p-2">{event.action}</td><td className="p-2">{event.actorName}</td><td className="p-2">{event.actorRole}</td><td className="p-2">{event.previousStatus ?? '—'}</td><td className="p-2">{event.newStatus ?? '—'}</td><td className="p-2">{event.reason ?? '—'}</td></tr>)}</tbody>
         </table></div> : <EmptyState title="No audit events match the current filters." />}
       </QueryState>
     </ModuleFrame>
@@ -669,7 +669,7 @@ export function AdminPage() {
             </fieldset>)}</div>
           </Panel>
           <Panel title="Policy values (days)">
-            <div className="grid gap-3 sm:grid-cols-2">{(Object.keys(POLICY_LABELS) as (keyof DemoPolicy)[]).map((key) => <FormField key={key} id={`policy-${key}`} label={POLICY_LABELS[key]}>
+            <div className="grid gap-3 sm:grid-cols-2">{(Object.keys(POLICY_LABELS) as (keyof DemoPolicy)[]).map((key) => <FormField key={key} id={`policy-${key}`} label={POLICY_LABELS[key]} required>
               <input id={`policy-${key}`} type="number" min={0} max={3650} className={inputClass} value={policy[key]} onChange={(e) => setPolicy((current) => ({ ...current, [key]: Number(e.target.value) }))} />
             </FormField>)}</div>
           </Panel>
@@ -717,17 +717,17 @@ export function AiPage() {
   };
   return (
     <ModuleFrame title="AI Assistance" description="Review application records, identify possible missing information and prepare administrative drafts.">
-      <p role="note" className="rounded border border-saffron-500 bg-saffron-50 p-3 text-sm text-neutral-800">
+      <p role="note" className="rounded border border-navy-300 bg-neutral-100 p-3 text-sm text-neutral-800">
         AI assistance may be incomplete or inaccurate and is not a verified regulatory finding. A human must review all output before use.
       </p>
       <form onSubmit={(event) => void submit(event)} className="space-y-3 rounded border border-neutral-300 bg-white p-4">
-        <FormField id="ai-task" label="Assistance function"><select id="ai-task" className={inputClass} value={actionName} onChange={(e) => setActionName(e.target.value as AiAction)}>{AI_ACTIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></FormField>
+        <FormField id="ai-task" label="Assistance function" required><select id="ai-task" className={inputClass} value={actionName} onChange={(e) => setActionName(e.target.value as AiAction)}>{AI_ACTIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></FormField>
         <FormField id="ai-app" label="Application (optional)"><select id="ai-app" className={inputClass} value={applicationId} onChange={(e) => setApplicationId(e.target.value)}><option value="">No application selected</option>{(applications.data ?? []).map((app) => <option key={app.id} value={app.id}>{app.id} — {app.programme}</option>)}</select></FormField>
-        <FormField id="ai-input" label="Question or context"><textarea id="ai-input" className={inputClass} rows={4} value={input} onChange={(e) => setInput(e.target.value)} minLength={3} /></FormField>
+        <FormField id="ai-input" label="Question or context" required><textarea id="ai-input" className={inputClass} rows={4} value={input} onChange={(e) => setInput(e.target.value)} minLength={3} /></FormField>
         <Button type="submit" loading={busy}>Generate response</Button>
       </form>
       <Feedback error={error} success="" />
-      {response && <section aria-labelledby="ai-output-title" className="rounded border-2 border-saffron-600 bg-saffron-50 p-4">
+      {response && <section aria-labelledby="ai-output-title" className="rounded border-2 border-navy-500 bg-navy-50 p-4">
         <h2 id="ai-output-title" className="font-semibold text-navy-800">AI-generated response — requires human review</h2>
         <p className="mt-2 text-sm font-medium">Uncertainty: {response.uncertainty}</p>
         <p className="mt-2 whitespace-pre-wrap text-sm">{response.text}</p>

@@ -67,15 +67,32 @@ export const QUERY_STATUS_TONE: Record<'open' | 'responded' | 'verified', Tone> 
 
 export function formatDate(iso: string | null): string {
   if (!iso) return '—';
-  const d = new Date(iso.length <= 10 ? `${iso}T00:00:00` : iso);
-  return Number.isNaN(d.getTime())
-    ? iso
-    : d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  const d = new Date(iso.length <= 10 ? `${iso}T12:00:00Z` : iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Kolkata',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).formatToParts(d);
+  const value = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? '';
+  return `${value('day')} ${MONTHS[Number(value('month')) - 1]} ${value('year')}`;
 }
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export function formatDateTime(iso: string): string {
   const d = new Date(iso);
-  return Number.isNaN(d.getTime())
-    ? iso
-    : d.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  if (Number.isNaN(d.getTime())) return iso;
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Kolkata',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(d);
+  const value = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? '';
+  return `${value('day')} ${MONTHS[Number(value('month')) - 1]} ${value('year')}, ${value('hour')}:${value('minute')} IST`;
 }

@@ -131,7 +131,7 @@ function ObservationForm({ applicationId }: { applicationId: string }) {
         );
       })}
     >
-      <FormField id="observation-text" label="Observation" error={formState.errors.text?.message}>
+      <FormField id="observation-text" label="Observation" error={formState.errors.text?.message} required>
         <textarea
           id="observation-text"
           rows={3}
@@ -182,13 +182,13 @@ function RaiseQueryForm({ applicationId }: { applicationId: string }) {
         );
       })}
     >
-      <FormField id="query-kind" label="Type of query" error={formState.errors.kind?.message}>
+      <FormField id="query-kind" label="Type of query" error={formState.errors.kind?.message} required>
         <select id="query-kind" className={inputClass} {...register('kind')}>
           <option value="clarification">Clarification (application remains with the institution until answered)</option>
           <option value="deficiency">Deficiency (return application to the institution)</option>
         </select>
       </FormField>
-      <FormField id="query-reason" label="Reason" error={formState.errors.reason?.message} hint="State the specific information or correction required.">
+      <FormField id="query-reason" label="Reason" error={formState.errors.reason?.message} hint="State the specific information or correction required." required>
         <textarea id="query-reason" rows={3} className={inputClass} aria-invalid={Boolean(formState.errors.reason)} {...register('reason')} />
       </FormField>
       {error && <ErrorState message={error} />}
@@ -240,7 +240,7 @@ function ReviewResponse({ query }: { query: ScrutinyQuery }) {
         {query.response}
       </p>
       <form noValidate className="mt-3 space-y-3">
-        <FormField id={fieldId} label="Review note" error={formState.errors.note?.message}>
+        <FormField id={fieldId} label="Review note" error={formState.errors.note?.message} required>
           <textarea id={fieldId} rows={2} className={inputClass} aria-invalid={Boolean(formState.errors.note)} {...register('note')} />
         </FormField>
         {error && <ErrorState message={error} />}
@@ -306,7 +306,7 @@ function CompleteStage({ detail }: { detail: ApplicationDetail }) {
             Complete scrutiny…
           </Button>
         ) : (
-          <div role="group" aria-label="Confirm completion" className="rounded border border-saffron-500 bg-saffron-50 p-3 text-sm">
+          <div role="group" aria-label="Confirm completion" className="rounded border border-neutral-300 bg-neutral-100 p-3 text-sm">
             <p className="font-medium">Confirm: complete scrutiny for {app.id}?</p>
             <p className="mt-1 text-xs text-neutral-700">This is recorded in the audit history. The service re-checks all conditions.</p>
             <div className="mt-3 flex gap-2">

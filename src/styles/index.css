@@ -5,25 +5,68 @@
 @layer base {
   html {
     font-size: 16px;
+    scroll-behavior: smooth;
   }
   body {
     @apply bg-neutral-50 text-neutral-900 antialiased;
+    font-family: "Noto Sans", system-ui, sans-serif;
+    line-height: 1.5;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    line-height: 1.25;
+  }
+
+  table {
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    min-height: 40px;
+    padding-block: 0.625rem;
+  }
+
+  thead {
+    background: #f3f4f6;
+  }
+
+  thead th {
+    border-bottom: 1px solid #d1d5db;
+    text-align: left;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  tbody tr:hover {
+    background: #f9fafb;
+  }
+
+  tbody td.tabular-nums {
+    text-align: right;
+  }
+
+  code,
+  .font-mono {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
   }
 }
 
 @layer components {
-  .skip-link {
-    @apply absolute left-2 top-2 -translate-y-16 rounded bg-white px-3 py-2 text-sm font-semibold text-navy-800 shadow focus:translate-y-0;
-  }
-
   .portal-width {
     width: min(100%, 80rem);
     margin-inline: auto;
   }
 
   .portal-utility {
-    background-color: #f3f4f6;
-    color: #1f2937;
+    background-color: #fff;
+    color: #111827;
+    border-bottom: 1px solid #d1d5db;
   }
 
   .tricolour-strip {
@@ -50,6 +93,52 @@
     background-color: #138808;
   }
   .focus-ring {
-    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-500 focus-visible:ring-offset-2;
+    @apply focus:outline-none;
+  }
+
+  .focus-ring:focus-visible {
+    outline: 2px solid #ff9933;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px #0b2545;
+  }
+
+  .utility-control {
+    @apply inline-flex min-h-7 min-w-7 items-center justify-center border border-neutral-400 bg-white px-1.5 font-medium text-neutral-900 underline;
+  }
+
+  .skip-link {
+    @apply absolute left-2 top-2 z-50 -translate-y-16 border border-navy-700 bg-white px-3 py-2 text-sm font-semibold text-navy-800 focus:translate-y-0;
+  }
+
+  .primary-nav-link[aria-current="page"] {
+    border-bottom-color: #ff9933;
+    font-weight: 700;
+  }
+
+  #main-content {
+    scroll-margin-top: 1rem;
+  }
+}
+
+html[data-high-contrast="true"] body,
+html[data-high-contrast="true"] body * {
+  color: #000 !important;
+  background-color: #fff !important;
+  border-color: #000 !important;
+  box-shadow: none !important;
+}
+
+html[data-high-contrast="true"] a {
+  text-decoration: underline !important;
+}
+
+html[data-high-contrast="true"] :focus-visible {
+  outline: 3px solid #000 !important;
+  outline-offset: 3px !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
   }
 }

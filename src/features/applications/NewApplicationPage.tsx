@@ -69,13 +69,14 @@ export function NewApplicationPage() {
 
       <form onSubmit={handleSubmit(onValid)} noValidate className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-4 rounded border border-neutral-300 bg-white p-4 lg:col-span-2">
-          <FormField id="institution" label="Institution">
+          <FormField id="institution" label="Institution" required>
             <input id="institution" className={`${inputClass} bg-neutral-100`} value={user.institutionName ?? ''} readOnly />
           </FormField>
 
           <FormField
             id="programme"
             label="Programme name"
+            required
             error={errors.programme?.message}
             hint="Enter the programme title as it should appear on the application record."
           >
@@ -88,7 +89,7 @@ export function NewApplicationPage() {
             />
           </FormField>
 
-          <FormField id="applicationType" label="Application type" error={errors.applicationType?.message}>
+          <FormField id="applicationType" label="Application type" error={errors.applicationType?.message} required>
             <select id="applicationType" className={inputClass} aria-invalid={Boolean(errors.applicationType)} {...register('applicationType')}>
               <option value="">Select an application type</option>
               {APPLICATION_TYPE_OPTIONS.map((t) => (
@@ -102,6 +103,7 @@ export function NewApplicationPage() {
           <FormField
             id="workflow"
             label="Workflow"
+            required
             error={errors.workflow?.message}
             hint="Select the applicable processing sequence."
           >
@@ -125,7 +127,7 @@ export function NewApplicationPage() {
             />
             <div>
               <label htmlFor="declaration" className="text-sm">
-                I confirm that the information provided in this application is accurate.
+                I confirm that the information provided in this application is accurate. <span className="font-medium">(required)</span>
               </label>
               {errors.declaration && (
                 <p id="declaration-error" className="text-xs font-medium text-red-700">

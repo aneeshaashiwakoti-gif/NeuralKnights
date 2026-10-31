@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { Button, FormField, inputClass } from '../../components/ui';
@@ -18,6 +18,10 @@ export function SignInPage() {
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [signInError, setSignInError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    document.title = 'Sign in | AICTE SmartFlow';
+  }, []);
 
   if (user) return <Navigate to="/overview" replace />;
 
@@ -50,17 +54,17 @@ export function SignInPage() {
       <GovernmentUtilityBar />
       <PortalMasthead />
       <nav aria-label="Primary" className="bg-navy-700 text-white">
-        <div className="portal-width px-4 py-2">
-          <ul><li><Link to="/sign-in" aria-current="page" className="focus-ring rounded bg-white px-2 py-1 text-sm font-medium text-navy-800">Sign in</Link></li></ul>
+        <div className="portal-width px-4">
+          <ul><li><Link to="/sign-in" aria-current="page" className="primary-nav-link focus-ring block w-fit border-b-[3px] border-saffron-500 px-3 py-3 text-sm font-bold text-white">Sign in</Link></li></ul>
         </div>
       </nav>
-      <main id="main-content" tabIndex={-1} className="portal-width flex-1 px-4 py-8">
-        <div className="mx-auto max-w-xl">
-          <h1 className="mb-5 text-2xl font-semibold text-navy-800">Sign in to SmartFlow</h1>
+      <main id="main-content" tabIndex={-1} className="portal-width flex flex-1 items-start justify-center bg-neutral-100 px-4 py-8 sm:items-center">
+        <div className="w-full max-w-[25rem]">
+          <h1 className="mb-5 text-title text-navy-800">Sign in to SmartFlow</h1>
           <section className="rounded border border-neutral-300 bg-white p-5 sm:p-6" aria-labelledby="signin-heading">
-            <h2 id="signin-heading" className="mb-4 text-lg font-semibold text-navy-800">Authorised user sign-in</h2>
+            <h2 id="signin-heading" className="mb-4 text-section text-navy-800">Authorised user sign-in</h2>
             <form className="space-y-4" onSubmit={(event) => void submit(event)} noValidate>
-              <FormField id="signin-email" label="Email address" error={errors.email}>
+              <FormField id="signin-email" label="Email address" error={errors.email} required>
                 <input
                   id="signin-email"
                   name="email"
@@ -77,7 +81,7 @@ export function SignInPage() {
                   }}
                 />
               </FormField>
-              <FormField id="signin-password" label="Password" error={errors.password}>
+              <FormField id="signin-password" label="Password" error={errors.password} required>
                 <input
                   id="signin-password"
                   name="password"
@@ -97,6 +101,9 @@ export function SignInPage() {
               {signInError && <p role="alert" className="rounded border border-red-600 bg-red-50 p-3 text-sm text-red-800">{signInError}</p>}
               <Button type="submit" loading={submitting}>Sign in</Button>
             </form>
+            <p className="mt-4 border-t border-neutral-200 pt-3 text-sm text-neutral-700">
+              Use the email address registered with your institution or AICTE office.
+            </p>
           </section>
         </div>
       </main>

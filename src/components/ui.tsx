@@ -1,30 +1,30 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
-import { AlertTriangle, CheckCircle2, Loader2, ShieldAlert } from 'lucide-react';
+import { cloneElement, isValidElement, type AriaAttributes, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { AlertCircle, AlertTriangle, CheckCircle2, Loader2, ShieldAlert } from 'lucide-react';
 import type { Tone } from '../domain/labels';
 
 const TONE_CLASSES: Record<Tone, string> = {
   neutral: 'border-neutral-300 bg-neutral-100 text-neutral-800',
-  info: 'border-navy-300 bg-navy-50 text-navy-800',
-  warning: 'border-amber-500 bg-amber-50 text-amber-900',
-  danger: 'border-red-600 bg-red-50 text-red-800',
-  success: 'border-green-700 bg-green-50 text-green-800',
+  info: 'border-status-info bg-status-info/[0.08] text-status-info',
+  warning: 'border-status-warning bg-status-warning/[0.08] text-status-warning',
+  danger: 'border-status-danger bg-status-danger/[0.08] text-status-danger',
+  success: 'border-status-success bg-status-success/[0.08] text-status-success',
 };
 
 /** Status chip: always shows text; colour reinforces but never carries meaning alone. */
 export function StatusChip({ label, tone }: { label: string; tone: Tone }) {
   return (
-    <span className={`inline-flex items-center rounded border px-2 py-0.5 text-xs font-medium ${TONE_CLASSES[tone]}`}>
+    <span className={`inline-flex h-[22px] items-center rounded border px-2 text-caption font-semibold ${TONE_CLASSES[tone]}`}>
       {label}
     </span>
   );
 }
 
-export function PageHeader({ title, description, actions }: { title: string; description?: string; actions?: ReactNode }) {
+export function PageHeader({ title, description, actions }: { title: ReactNode; description?: string; actions?: ReactNode }) {
   return (
-    <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+    <div className="mb-6 flex flex-wrap items-start justify-between gap-4 border-b border-neutral-300 pb-4">
       <div>
-        <h1 className="text-2xl font-semibold text-navy-800">{title}</h1>
-        {description && <p className="mt-1 max-w-3xl text-sm text-neutral-700">{description}</p>}
+        <h1 className="text-title text-navy-800">{title}</h1>
+        {description && <p className="mt-1 max-w-3xl text-body text-neutral-700">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
     </div>
@@ -35,7 +35,7 @@ export function Panel({ title, children, id }: { title?: string; children: React
   return (
     <section aria-labelledby={id} className="rounded border border-neutral-300 bg-white">
       {title && (
-        <h2 id={id} className="border-b border-neutral-200 px-4 py-2 text-sm font-semibold text-navy-800">
+        <h2 id={id} className="border-b border-neutral-200 px-4 py-3 text-section font-semibold text-navy-800">
           {title}
         </h2>
       )}
@@ -56,11 +56,11 @@ export function Button({
   ...rest
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant; loading?: boolean }) {
   const base =
-    'focus-ring inline-flex items-center gap-2 rounded border px-3 py-1.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50';
+    'focus-ring inline-flex h-9 items-center gap-2 rounded border px-3 text-sm font-medium disabled:cursor-not-allowed disabled:border-neutral-500 disabled:bg-neutral-200 disabled:text-neutral-700';
   const styles: Record<ButtonVariant, string> = {
     primary: 'border-navy-700 bg-navy-700 text-white hover:bg-navy-800',
     secondary: 'border-neutral-400 bg-white text-navy-800 hover:bg-neutral-100',
-    danger: 'border-red-700 bg-red-700 text-white hover:bg-red-800',
+    danger: 'border-status-danger bg-status-danger text-white hover:bg-red-800',
   };
   return (
     <button
@@ -78,7 +78,7 @@ export function Button({
 
 export function LoadingState({ label = 'Loading…' }: { label?: string }) {
   return (
-    <div role="status" aria-live="polite" className="flex items-center gap-2 py-8 text-sm text-neutral-700">
+    <div role="status" aria-live="polite" className="flex min-h-16 items-center gap-2 border border-neutral-300 bg-white px-4 py-4 text-sm text-neutral-700">
       <Loader2 size={16} className="animate-spin" aria-hidden="true" />
       {label}
     </div>
@@ -112,9 +112,9 @@ export function SuccessMessage({ message }: { message: string }) {
 
 export function EmptyState({ title, description }: { title: string; description?: string }) {
   return (
-    <div className="rounded border border-dashed border-neutral-400 bg-white p-8 text-center">
+    <div className="rounded border border-neutral-300 bg-white p-4">
       <p className="font-medium text-neutral-800">{title}</p>
-      {description && <p className="mt-1 text-sm text-neutral-700">{description}</p>}
+      <p className="mt-1 text-sm text-neutral-700">{description ?? 'There are no records to display for the current selection.'}</p>
     </div>
   );
 }
@@ -134,27 +134,41 @@ export function FormField({
   label,
   error,
   hint,
+  required = false,
   children,
 }: {
   id: string;
   label: string;
   error?: string;
   hint?: string;
+  required?: boolean;
   children: ReactNode;
 }) {
   return (
     <div className="space-y-1">
-      <label htmlFor={id} className="block text-sm font-medium text-neutral-800">
-        {label}
+      <label htmlFor={id} className="block text-body font-medium text-neutral-800">
+        {label}{required && <><span> </span><span aria-hidden="true" className="text-sm font-normal text-neutral-700">(required)</span></>}
       </label>
-      {children}
+      {isValidElement<AriaAttributes>(children)
+        ? cloneElement(children, {
+            'aria-label': required ? label : children.props['aria-label'],
+            'aria-required': required || children.props['aria-required'],
+            'aria-invalid': error ? true : children.props['aria-invalid'],
+            'aria-describedby': [
+              children.props['aria-describedby'],
+              hint && !error ? `${id}-hint` : undefined,
+              error ? `${id}-error` : undefined,
+            ].filter((value): value is string => Boolean(value)).join(' ') || undefined,
+          })
+        : children}
       {hint && !error && (
         <p id={`${id}-hint`} className="text-xs text-neutral-600">
           {hint}
         </p>
       )}
       {error && (
-        <p id={`${id}-error`} className="text-xs font-medium text-red-700">
+        <p id={`${id}-error`} className="flex items-center gap-1 text-sm font-medium text-red-800">
+          <AlertCircle size={14} aria-hidden="true" />
           {error}
         </p>
       )}
@@ -163,4 +177,4 @@ export function FormField({
 }
 
 export const inputClass =
-  'focus-ring block w-full rounded border border-neutral-400 bg-white px-3 py-2 text-sm text-neutral-900 aria-[invalid=true]:border-red-600';
+  'focus-ring block min-h-10 w-full rounded border border-neutral-400 bg-white px-3 text-sm text-neutral-900 aria-[invalid=true]:border-red-600';

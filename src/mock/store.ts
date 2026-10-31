@@ -12,6 +12,19 @@ type Listener = () => void;
 const listeners = new Set<Listener>();
 
 let state: DemoDataset = load();
+let lastDataRefresh = loadLastDataRefresh();
+
+function loadLastDataRefresh(): string {
+  try {
+    const stored = typeof localStorage !== 'undefined'
+      ? localStorage.getItem('aicte-smartflow:last-data-refresh')
+      : null;
+    return stored && !Number.isNaN(Date.parse(stored)) ? stored : new Date().toISOString();
+  } catch (error) {
+    console.warn('Unable to read the last data refresh time.', error);
+    return new Date().toISOString();
+  }
+}
 
 function isDatasetShape(value: unknown): value is DemoDataset {
   if (!value || typeof value !== 'object') return false;
@@ -46,17 +59,23 @@ export function nextId(prefix: string, existing: { id: string }[]): string {
 }
 
 function persist(): void {
+  lastDataRefresh = new Date().toISOString();
   try {
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      localStorage.setItem('aicte-smartflow:last-data-refresh', lastDataRefresh);
     }
-  } catch {
-    // Storage quota or privacy mode: state remains in memory for this session.
+  } catch (error) {
+    console.warn('Unable to persist the application data store.', error);
   }
 }
 
 export function getState(): DemoDataset {
   return state;
+}
+
+export function getLastDataRefresh(): string {
+  return lastDataRefresh;
 }
 
 export function setState(updater: (prev: DemoDataset) => DemoDataset): void {

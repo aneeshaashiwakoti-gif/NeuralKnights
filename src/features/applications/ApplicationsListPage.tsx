@@ -79,7 +79,7 @@ export function ApplicationsListPage() {
         <div className="overflow-x-auto rounded border border-neutral-300 bg-white">
           <table className="min-w-full text-left text-sm">
             <caption className="sr-only">Applications, newest first</caption>
-            <thead className="bg-neutral-100 text-xs uppercase tracking-wide text-neutral-700">
+            <thead className="bg-neutral-100 text-caption text-neutral-700">
               <tr>
                 <th scope="col" className="px-3 py-2">Application ID</th>
                 <th scope="col" className="px-3 py-2">Programme</th>
@@ -98,7 +98,7 @@ export function ApplicationsListPage() {
                 return (
                   <tr key={item.id} className="hover:bg-neutral-50">
                     <td className="px-3 py-2 font-medium">
-                      <Link to={`/applications/${item.id}`} className="focus-ring rounded text-navy-700 underline">
+                      <Link to={`/applications/${item.id}`} className="focus-ring rounded font-mono text-navy-700 underline">
                         {item.id}
                       </Link>
                     </td>
@@ -111,9 +111,9 @@ export function ApplicationsListPage() {
                     <td className="px-3 py-2">
                       {stage ? <StatusChip label={stage.label} tone={STAGE_STATUS_TONE[stage.status]} /> : '—'}
                     </td>
-                    <td className="px-3 py-2">{formatDate(item.submittedOn)}</td>
-                    <td className="px-3 py-2">{item.ageDays}</td>
-                    <td className="px-3 py-2">{item.openQueryCount}</td>
+                    <td className="px-3 py-2 tabular-nums">{formatDate(item.submittedOn)}</td>
+                    <td className="px-3 py-2 tabular-nums">{item.ageDays}</td>
+                    <td className="px-3 py-2 tabular-nums">{item.openQueryCount}</td>
                   </tr>
                 );
               })}
